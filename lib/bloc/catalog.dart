@@ -22,7 +22,7 @@ class CatalogBloc extends BaseBloc {
 
   createItem(i) {
     return Item(
-      title: "Item $i",
+      title: "Item ${i+1}",
       price: random.nextDouble() * 15000,
       discount: random.nextBool() ? random.nextDouble() * 70 : 0,
     );

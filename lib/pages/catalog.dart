@@ -73,14 +73,14 @@ class _CatalogPageState extends State<CatalogPage> {
                   flex: 1,
                   child: Column(
                     children: List.generate((bloc.items.length / 2).ceil(),
-                        (i) => buildItemCard(i)),
+                        (i) => buildItemCard(i * 2)),
                   ),
                 ),
                 Expanded(
                   flex: 1,
                   child: Column(
                     children: List.generate((bloc.items.length / 2).floor(),
-                        (i) => buildItemCard(i + 1)),
+                        (i) => buildItemCard(i * 2 + 1)),
                   ),
                 ),
               ],
