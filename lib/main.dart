@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:marketplace/bloc/base.dart';
-import 'package:marketplace/bloc/catalog.dart';
 import 'package:marketplace/bloc/home.dart';
-import 'package:marketplace/pages/home.dart';
+import 'package:marketplace/bloc/landing.dart';
+import 'package:marketplace/pages/item_view.dart';
+import 'package:marketplace/pages/landing.dart';
 import 'package:provider/provider.dart';
 
 void main() => runApp(MyApp());
 
 Map<String, WidgetBuilder> routes = {
-  "/": (context)=>HomePage(),
+  "/": (context) => LandingPage(),
+  "/item/view": (context) => ItemView(),
 };
 
 class MyApp extends StatelessWidget {
@@ -18,18 +20,15 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         registerProvider(HomeBloc()),
-        registerProvider(CatalogBloc()),
+        registerProvider(LandingBloc()),
       ],
       child: MaterialApp(
         title: 'Marketplace',
         theme: ThemeData(
-          primarySwatch: Colors.deepOrange,
-          accentColor: Colors.green
-        ),
+            primarySwatch: Colors.deepOrange, accentColor: Colors.green),
         routes: routes,
         debugShowCheckedModeBanner: false,
       ),
-      
     );
   }
 }

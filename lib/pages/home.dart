@@ -1,83 +1,133 @@
 import 'package:flutter/material.dart';
 import 'package:marketplace/bloc/home.dart';
+import 'package:marketplace/entities/item.dart';
 import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
-  HomePage({
-    Key key,
-  }) : super(key: key);
-
   @override
-  _HomePageState createState() => _HomePageState();
+  _HomePageState createState() {
+    return _HomePageState();
+  }
 }
 
 class _HomePageState extends State<HomePage> {
   HomeBloc get bloc => Provider.of<HomeBloc>(context);
 
+  ScrollController controller = ScrollController();
+
+  @override
+  void initState() {
+    controller.addListener(() {
+      if (controller.position.pixels == controller.position.maxScrollExtent)
+        bloc.loadMore();
+    });
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<int>(
-        stream: bloc.pageStream,
+    bloc.register(context);
+    return Scaffold(
+      body: SingleChildScrollView(
+        controller: controller,
+        child: Column(
+          children: <Widget>[
+            buildSection("Discover"),
+          ],
+          mainAxisAlignment: MainAxisAlignment.center,
+        ),
+      ),
+    );
+  }
+
+  Container buildSection(String title) {
+    return Container(
+      padding: EdgeInsets.fromLTRB(16, 16, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            title,
+            style: bloc.theme.textTheme.subhead
+                .copyWith(fontWeight: FontWeight.bold),
+          ),
+          Divider(
+            color: Colors.transparent,
+            height: 8,
+          ),
+          buildListing()
+        ],
+      ),
+    );
+  }
+
+  Widget buildListing() {
+    return StreamBuilder(
+        stream: bloc.itemStream,
         builder: (context, snapshot) {
-          return Scaffold(
-            appBar: AppBar(
-              flexibleSpace: Container(
-                margin: EdgeInsets.only(left: 8, right: 48, top: 4),
-                child: Column(
-                  children: <Widget>[
-                    Container(
-                      height: MediaQuery.of(context).padding.top,
-                    ),
-                    buildSearchField(),
-                  ],
+          return Container(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Expanded(
+                  flex: 1,
+                  child: Column(
+                    children: List.generate((bloc.items.length / 2).ceil(),
+                        (i) => buildItemCard(i * 2)),
+                  ),
                 ),
-              ),
-              actions: <Widget>[
-                IconButton(
-                  icon: Icon(Icons.shopping_cart),
-                  onPressed: bloc.onViewChart,
-                )
-              ],
-            ),
-            body: Builder(
-              builder: (context) {
-                bloc.register(context);
-                return bloc.getPage();
-              },
-            ),
-            bottomNavigationBar: BottomNavigationBar(
-              elevation: 8,
-              currentIndex: snapshot.data ?? 0,
-              type: BottomNavigationBarType.fixed,
-              onTap: bloc.setPage,
-              items: [
-                BottomNavigationBarItem(
-                    icon: Icon(Icons.home), title: Text("Home")),
-                BottomNavigationBarItem(
-                    icon: Icon(Icons.chat), title: Text("Message")),
-                BottomNavigationBarItem(
-                    icon: Icon(Icons.shopping_cart), title: Text("Cart")),
-                BottomNavigationBarItem(
-                    icon: Icon(Icons.person), title: Text("Profile")),
+                Expanded(
+                  flex: 1,
+                  child: Column(
+                    children: List.generate((bloc.items.length / 2).floor(),
+                        (i) => buildItemCard(i * 2 + 1)),
+                  ),
+                ),
               ],
             ),
           );
         });
   }
 
-  TextFormField buildSearchField() {
-    OutlineInputBorder border =
-        OutlineInputBorder(borderSide: BorderSide(color: Colors.transparent));
-    return TextFormField(
-      decoration: InputDecoration(
-        contentPadding: EdgeInsets.fromLTRB(16, 12, 16, 12),
-        filled: true,
-        fillColor: Colors.white,
-        hintText: "IPhone X",
-        border: border,
-        focusedBorder: border,
-        enabledBorder: border,
-        disabledBorder: border,
+  Widget buildItemCard(i) {
+    Item item = bloc.items[i];
+    return InkWell(
+      onTap: ()=>bloc.view(item),
+      child: Card(
+        child: Container(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Container(
+                height: 120,
+                decoration: BoxDecoration(color: Colors.white),
+                child: Image.network(item.image),
+                alignment: Alignment.center,
+              ),
+              Container(
+                  padding: EdgeInsets.fromLTRB(12, 8, 12, 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(item.title),
+                      Container(
+                        height: 12,
+                      ),
+                      Text(
+                        "RM ${(item.price * (1.0 - (item.discount / 100))).toStringAsFixed(2)}",
+                        style: bloc.theme.textTheme.subtitle
+                            .copyWith(color: bloc.primaryColor),
+                      ),
+                      item.hasDiscount
+                          ? Text("RM ${item.price.toStringAsFixed(2)}",
+                              style: bloc.theme.textTheme.caption.copyWith(
+                                  decoration: TextDecoration.lineThrough))
+                          : Container()
+                    ],
+                  ))
+            ],
+          ),
+        ),
       ),
     );
   }
